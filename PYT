@@ -1,0 +1,43 @@
+pip install Flask
+
+# app.py
+
+from flask import Flask, render_template, request, redirect, url_for
+import os
+import json
+
+app = Flask(__name__)
+
+# Function to load budget data from JSON file
+def load_budget():
+    if os.path.exists('budget.json'):
+        with open('budget.json', 'r') as f:
+            return json.load(f)
+    else:
+        return {'expenses': []}
+
+# Function to save budget data to JSON file
+def save_budget(data):
+    with open('budget.json', 'w') as f:
+        json.dump(data, f)
+
+# Route to display the budget tracker form
+@app.route('/')
+def index():
+    budget = load_budget()
+    return render_template('index.html', budget=budget)
+
+# Route to add a new expense
+@app.route('/add_expense', methods=['POST'])
+def add_expense():
+    budget = load_budget()
+    expense = {
+        'title': request.form['title'],
+        'amount': float(request.form['amount'])
+    }
+    budget['expenses'].append(expense)
+    save_budget(budget)
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
